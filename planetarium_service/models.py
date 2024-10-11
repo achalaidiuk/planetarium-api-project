@@ -69,3 +69,23 @@ class Ticket(models.Model):
         return (
             f"{str(self.show_session)} (row: {self.row}, seat: {self.seat})"
         )
+
+    @staticmethod
+    def validate_ticket(row, seat, show_session, error_to_raise):
+        planetarium_dome = show_session.planetarium_dome
+        for (ticket_attr_value, ticket_attr_name,
+             planetarium_dome_attr_name) in [
+            (row, "row", "rows"),
+            (seat, "seat", "seats_in_row"),
+        ]:
+            count_attrs = getattr(planetarium_dome, planetarium_dome_attr_name)
+            if not (1 <= ticket_attr_value <= count_attrs):
+                raise error_to_raise(
+                    {
+                        ticket_attr_name:
+                            f"{ticket_attr_name} "
+                            f"number must be in available range: "
+                            f"(1, {planetarium_dome_attr_name}): "
+                            f"(1, {count_attrs})"
+                    }
+                )
