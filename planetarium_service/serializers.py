@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from planetarium_service.models import (
     PlanetariumDome,
@@ -13,7 +14,7 @@ class PlanetariumDomeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlanetariumDome
-        fields = ("id", "name", "rows", "seats_in_row", "image")
+        fields = ("id", "name", "rows", "seats_in_row", "image", "capacity")
         read_only_fields = ("image",)
 
 
@@ -47,7 +48,7 @@ class ShowSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShowSession
-        fields = "__all__"
+        fields = ("id", "astronomy_show", "planetarium_dome", "show_time")
 
 
 class ShowSessionListSerializer(ShowSessionSerializer):
@@ -68,18 +69,78 @@ class ShowSessionListSerializer(ShowSessionSerializer):
 class ShowThemeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShowTheme
-        fields = ("name",)
+        fields = ("id", "name")
+
+
+class ShowThemeListSerializer(ShowThemeSerializer):
+    pass
+
+
+class ShowThemeDetailSerializer(ShowThemeSerializer):
+    pass
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    planetarium_dome = PlanetariumDomeSerializer(read_only=True)
+
+    def validate(self, attrs):
+        data = super(TicketSerializer, self).validate(attrs=attrs)
+
+        row = data.get("row")
+        seat = data.get("seat")
+        show_session_id = data.get("show_session")
+
+        if Ticket.objects.filter(row=row, seat=seat,
+                                 show_session_id=show_session_id).exists():
+            raise serializers.ValidationError("This seat is already occupied.")
+
+        return data
+
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session",
+            "planetarium_dome",
+            "reservation"
+        )
+
+
+class TicketListSerializer(TicketSerializer):
+    show_session = serializers.SerializerMethodField()
+    reservation = serializers.SerializerMethodField()
+
+    def get_show_session(self, obj):
+        return obj.show_session.astronomy_show.title
+
+    def get_reservation(self, obj):
+        return obj.reservation.user.username
 
 
 class ReservationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reservation
-        fields = "__all__"
+        fields = ("id", "created_at", "user")
+
+    def create(self, validated_data):
+        reservations_data = [Reservation(**item) for item in validated_data]
+
+        with transaction.atomic():
+            reservations = Reservation.objects.bulk_create(reservations_data)
+
+        return reservations
 
 
-class TicketSerializer(serializers.ModelSerializer):
+class ReservationListSerializer(ReservationSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)
+    user = serializers.SerializerMethodField()
 
     class Meta:
-        model = Ticket
-        fields = "__all__"
+        model = Reservation
+        fields = ("id", "user", "tickets")
+
+    def get_user(self, obj):
+        return obj.user.username
