@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'planetarium_service',
-    'rest_framework_simplejwt',
     'user',
+    'rest_framework_simplejwt',
     'drf_spectacular'
 ]
 
