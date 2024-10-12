@@ -13,7 +13,14 @@ class PlanetariumDomeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlanetariumDome
-        fields = "__all__"
+        fields = ("id", "name", "rows", "seats_in_row", "image")
+        read_only_fields = ("image",)
+
+
+class PlanetariumDomeImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlanetariumDome
+        fields = ("id", "image")
 
 
 class AstronomyShowSerializer(serializers.ModelSerializer):

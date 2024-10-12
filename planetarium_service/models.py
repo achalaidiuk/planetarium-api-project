@@ -1,6 +1,10 @@
+import pathlib
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 class CustomUser(AbstractUser):
@@ -11,12 +15,17 @@ class CustomUser(AbstractUser):
         Permission, related_name="custom_user_permissions"
     )
 
+def movie_image_path(instance, filename) -> pathlib.Path:
+    filename = (f"slugify {instance.title}-{uuid.uuid4()}"
+                + pathlib.Path(filename).suffix)
+    return pathlib.Path("uploads/planetariums/") / pathlib.Path(filename)
+
 
 class PlanetariumDome(models.Model):
     name = models.CharField(max_length=63)
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
-
+    image = models.ImageField(upload_to=movie_image_path, null=True)
 
     @property
     def capacity(self) -> int:
@@ -37,6 +46,9 @@ class AstronomyShow(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        ordering = ["-title"]
 
 
 class ShowSession(models.Model):
@@ -59,6 +71,9 @@ class Reservation(models.Model):
     def __str__(self):
         return f"{self.created_at} - {self.user}"
 
+    class Meta:
+        ordering = ["-created_at"]
+
 
 class Ticket(models.Model):
     row = models.IntegerField()
@@ -78,8 +93,11 @@ class Ticket(models.Model):
     @staticmethod
     def validate_ticket(row, seat, show_session, error_to_raise):
         planetarium_dome = show_session.planetarium_dome
-        for (ticket_attr_value, ticket_attr_name,
-             planetarium_dome_attr_name) in [
+        for (
+                ticket_attr_value,
+                ticket_attr_name,
+                planetarium_dome_attr_name
+        ) in [
             (row, "row", "rows"),
             (seat, "seat", "seats_in_row"),
         ]:
@@ -94,3 +112,32 @@ class Ticket(models.Model):
                             f"(1, {count_attrs})"
                     }
                 )
+
+    def clean(self):
+        Ticket.validate_ticket(
+            self.row,
+            self.seat,
+            self.show_session.planetarium_dome,
+            ValidationError,
+        )
+
+    def save(
+            self,
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None,
+    ):
+        self.full_clean()
+        return super(Ticket, self).save(
+            force_insert, force_update, using, update_fields
+        )
+
+    def __str__(self):
+        return (
+            f"{str(self.show_session)} (row: {self.row}, seat: {self.seat})"
+        )
+
+    class Meta:
+        unique_together = ("show_session", "row", "seat")
+        ordering = ["row", "seat"]
