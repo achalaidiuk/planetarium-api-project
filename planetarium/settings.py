@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'planetarium_service',
+    'rest_framework.authtoken',
+    'user',
 ]
 
 MIDDLEWARE = [
