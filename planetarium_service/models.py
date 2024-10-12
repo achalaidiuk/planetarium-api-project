@@ -12,11 +12,12 @@ class CustomUser(AbstractUser):
         Group, related_name="custom_user_groups"
     )
     user_permissions = models.ManyToManyField(
-        Permission, related_name="custom_user_permissions"
+        Permission, related_name='custom_user_permissions'
     )
 
+
 def movie_image_path(instance, filename) -> pathlib.Path:
-    filename = (f"slugify {instance.title}-{uuid.uuid4()}"
+    filename = (f"slugify {instance.name}-{uuid.uuid4()}"
                 + pathlib.Path(filename).suffix)
     return pathlib.Path("uploads/planetariums/") / pathlib.Path(filename)
 
@@ -30,19 +31,22 @@ class PlanetariumDome(models.Model):
     @property
     def capacity(self) -> int:
         return self.rows * self.seats_in_row
+
     def __str__(self):
         return self.name
 
 
 class ShowTheme(models.Model):
     name = models.CharField(max_length=63)
+
     def __str__(self):
         return self.name
 
 
 class AstronomyShow(models.Model):
     title = models.CharField(max_length=63)
-    description = models.ManyToManyField(ShowTheme)
+    themes = models.ManyToManyField(ShowTheme, related_name="astronomy_shows")
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -52,20 +56,24 @@ class AstronomyShow(models.Model):
 
 
 class ShowSession(models.Model):
-    astronomy_show = models.ForeignKey(AstronomyShow, on_delete=models.CASCADE)
+    astronomy_show = models.ForeignKey(
+        AstronomyShow, on_delete=models.CASCADE, related_name="show_sessions"
+    )
     planetarium_dome = models.ForeignKey(
-        PlanetariumDome, on_delete=models.CASCADE
+        PlanetariumDome, on_delete=models.CASCADE, related_name="show_sessions"
     )
     show_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.astronomy_show
+        return str(self.astronomy_show.title)
 
 
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reservations"
     )
 
     def __str__(self):
@@ -85,23 +93,16 @@ class Ticket(models.Model):
         Reservation, on_delete=models.CASCADE, related_name="tickets"
     )
 
-    def __str__(self):
-        return (
-            f"{str(self.show_session)} (row: {self.row}, seat: {self.seat})"
-        )
-
     @staticmethod
-    def validate_ticket(row, seat, show_session, error_to_raise):
-        planetarium_dome = show_session.planetarium_dome
-        for (
-                ticket_attr_value,
-                ticket_attr_name,
-                planetarium_dome_attr_name
-        ) in [
+    def validate_ticket(row, seat, planetarium_dome, error_to_raise):
+        for (ticket_attr_value,
+             ticket_attr_name,
+             planetarium_dome_attr_name) in [
             (row, "row", "rows"),
             (seat, "seat", "seats_in_row"),
         ]:
-            count_attrs = getattr(planetarium_dome, planetarium_dome_attr_name)
+            count_attrs = getattr(planetarium_dome,
+                                  planetarium_dome_attr_name)
             if not (1 <= ticket_attr_value <= count_attrs):
                 raise error_to_raise(
                     {
@@ -134,10 +135,14 @@ class Ticket(models.Model):
         )
 
     def __str__(self):
-        return (
-            f"{str(self.show_session)} (row: {self.row}, seat: {self.seat})"
-        )
+        return (f"Ticket: {self.id},"
+                f"(row: {self.row}, seat: {self.seat})."
+                f"Session info: {self.show_session}\n")
 
     class Meta:
-        unique_together = ("show_session", "row", "seat")
-        ordering = ["row", "seat"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["show_session", "reservation", "row", "seat"],
+                name="unique_ticket")
+        ]
+        ordering = ("row", "seat")
