@@ -126,11 +126,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
 
 
-class ReservationPagination(PageNumberPagination):
-    page_size = 5
-    max_page_size = 50
-
-
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
