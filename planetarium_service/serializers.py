@@ -126,12 +126,12 @@ class ReservationSerializer(serializers.ModelSerializer):
         fields = ("id", "created_at", "user")
 
     def create(self, validated_data):
-        reservations_data = [Reservation(**item) for item in validated_data]
+        reservation = Reservation(**validated_data)
 
         with transaction.atomic():
-            reservations = Reservation.objects.bulk_create(reservations_data)
+            reservation.save()
 
-        return reservations
+        return reservation
 
 
 class ReservationListSerializer(ReservationSerializer):
