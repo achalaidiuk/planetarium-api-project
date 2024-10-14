@@ -11,11 +11,10 @@ from planetarium_service.models import (
 
 
 class PlanetariumDomeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = PlanetariumDome
         fields = ("id", "name", "rows", "seats_in_row", "image", "capacity")
-        read_only_fields = ("image",)
+        read_only_fields = ("capacity",)
 
 
 class PlanetariumDomeImageSerializer(serializers.ModelSerializer):
@@ -46,7 +45,6 @@ class AstronomyShowListSerializer(AstronomyShowSerializer):
 
 
 class ShowSessionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ShowSession
         fields = ("id", "astronomy_show", "planetarium_dome", "show_time")
@@ -73,27 +71,20 @@ class ShowThemeSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
-class ShowThemeListSerializer(ShowThemeSerializer):
-    pass
-
-
-class ShowThemeDetailSerializer(ShowThemeSerializer):
-    pass
-
-
 class TicketSerializer(serializers.ModelSerializer):
     planetarium_dome = PlanetariumDomeSerializer(read_only=True)
 
     def validate(self, attrs):
-        data = super(TicketSerializer, self).validate(attrs=attrs)
+        data = super().validate(attrs)
 
         row = data.get("row")
         seat = data.get("seat")
         show_session_id = data.get("show_session")
 
-        if Ticket.objects.filter(row=row, seat=seat,
-                                 show_session_id=show_session_id).exists():
-            raise serializers.ValidationError("This seat is already occupied.")
+        if Ticket.objects.filter(
+                row=row, seat=seat, show_session_id=show_session_id
+        ).exists():
+            raise serializers.ValidationError("This place is already taken.")
 
         return data
 
@@ -121,7 +112,6 @@ class TicketListSerializer(TicketSerializer):
 
 
 class ReservationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Reservation
         fields = ("id", "created_at", "user")
