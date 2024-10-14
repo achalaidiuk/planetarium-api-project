@@ -6,7 +6,7 @@ from planetarium_service.models import (
     ShowSession,
     ShowTheme,
     Reservation,
-    Ticket,
+    Ticket
 )
 
 
@@ -36,6 +36,7 @@ class AstronomyShowSerializer(serializers.ModelSerializer):
 
 class AstronomyShowListSerializer(AstronomyShowSerializer):
     themes_names = serializers.SerializerMethodField()
+
     class Meta:
         model = AstronomyShow
         fields = ("id", "title", "description", "themes_names")

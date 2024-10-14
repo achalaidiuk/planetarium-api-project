@@ -12,7 +12,7 @@ from planetarium_service.models import (
     ShowTheme,
     AstronomyShow,
     Reservation,
-    Ticket,
+    Ticket
 )
 from planetarium_service.serializers import (
     PlanetariumDomeSerializer,
@@ -24,7 +24,7 @@ from planetarium_service.serializers import (
     ShowSessionListSerializer,
     AstronomyShowListSerializer,
     PlanetariumDomeImageSerializer,
-    PlanetariumDomeDetailSerializer,
+    PlanetariumDomeDetailSerializer
 )
 
 
@@ -46,7 +46,6 @@ class PlanetariumDomeViewSet(
         detail=True,
         url_path="upload-image"
     )
-
     def upload_image(self, request, pk=None):
         planetarium_dome = self.get_object()
         serializer = self.get_serializer(planetarium_dome, data=request.data)
@@ -66,6 +65,7 @@ class PlanetariumDomeViewSet(
 
         return PlanetariumDomeSerializer
 
+
 class ShowSessionViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -75,7 +75,7 @@ class ShowSessionViewSet(
     GenericViewSet
 ):
     queryset = (
-        ShowSession.objects.all()
+        ShowSession.objects
         .select_related("astronomy_show", "planetarium_dome")
         .annotate(
             tickets_available=(
