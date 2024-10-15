@@ -39,7 +39,9 @@ class UserURLsTest(APITestCase):
     def test_manage_user_url(self):
         user = User.objects.create_user(username="testuser", password="testpass")
         refresh = RefreshToken.for_user(user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
 
         url = reverse("user:manage")
         response = self.client.get(url)
