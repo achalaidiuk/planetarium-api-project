@@ -8,15 +8,12 @@ User = get_user_model()
 
 
 class UserURLsTest(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
 
     def test_register_url(self):
         url = reverse("user:create")
-        response = self.client.get(url)
-        self.assertEqual(
-            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
-        )
+        data = {"username": "newuser", "password": "newpass123"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_token_url(self):
         url = reverse("user:token_obtain_pair")
@@ -40,6 +37,10 @@ class UserURLsTest(APITestCase):
         )
 
     def test_manage_user_url(self):
+        user = User.objects.create_user(username="testuser", password="testpass")
+        refresh = RefreshToken.for_user(user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
         url = reverse("user:manage")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,4 +79,4 @@ class JWTAuthenticationTest(APITestCase):
     def test_manage_user_unauthenticated(self):
         url = reverse("user:manage")
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
