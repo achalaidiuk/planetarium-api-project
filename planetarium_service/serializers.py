@@ -41,7 +41,7 @@ class AstronomyShowListSerializer(AstronomyShowSerializer):
         fields = ("id", "title", "description", "themes_names")
 
     def get_themes_names(self, obj):
-        return [theme.name for theme in obj.themes.all()]
+        return obj.themes.values_list("name", flat=True)
 
 
 class ShowSessionSerializer(serializers.ModelSerializer):
