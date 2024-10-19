@@ -44,10 +44,10 @@ class PlanetariumDomeViewSet(
 
     def get_serializer_class(self):
         if self.action == "list":
-            return PlanetariumDomeSerializer
+            return self.serializer_class
         if self.action == "retrieve":
             return PlanetariumDomeDetailSerializer
-        return PlanetariumDomeSerializer
+        return self.serializer_class
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
@@ -86,7 +86,7 @@ class ShowSessionViewSet(
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
-            return ShowSessionListSerializer
+            return self.serializer_class
         return self.serializer_class
 
 
@@ -108,7 +108,7 @@ class AstronomyShowViewSet(
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
-            return AstronomyShowListSerializer
+            return self.serializer_class
         return self.serializer_class
 
 
@@ -124,7 +124,7 @@ class ReservationViewSet(
 
     def get_serializer_class(self):
         if self.action == "list":
-            return ReservationListSerializer
+            return self.serializer_class
         return self.serializer_class
 
 
@@ -138,7 +138,7 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == "list":
-            return TicketListSerializer
+            return self.serializer_class
         return self.serializer_class
 
     def perform_create(self, serializer):
