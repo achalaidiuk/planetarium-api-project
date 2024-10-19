@@ -1,7 +1,6 @@
 from rest_framework import generics
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.settings import api_settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from user.serializers import UserSerializer
 
@@ -11,9 +10,8 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = []
 
 
-class CreateTokenView(ObtainAuthToken):
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-    serializer_class = [JWTAuthentication]
+class CreateTokenView(TokenObtainPairView):
+    serializer_class = UserSerializer
 
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
