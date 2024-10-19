@@ -100,6 +100,17 @@ class TicketListSerializer(TicketSerializer):
     )
     reservation = serializers.CharField(source="reservation.user.username")
 
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "show_session",
+            "planetarium_dome",
+            "reservation"
+        )
+
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
