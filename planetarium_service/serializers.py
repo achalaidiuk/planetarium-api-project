@@ -51,18 +51,12 @@ class ShowSessionSerializer(serializers.ModelSerializer):
 
 
 class ShowSessionListSerializer(ShowSessionSerializer):
-    planetarium_dome = serializers.SerializerMethodField()
-    astronomy_show = serializers.SerializerMethodField()
+    planetarium_dome = serializers.CharField(source="planetarium_dome.name")
+    astronomy_show = serializers.CharField(source="astronomy_show.title")
 
     class Meta:
         model = ShowSession
         fields = ("id", "planetarium_dome", "astronomy_show", "show_time")
-
-    def get_astronomy_show(self, obj):
-        return obj.astronomy_show.title
-
-    def get_planetarium_dome(self, obj):
-        return obj.planetarium_dome.name
 
 
 class ShowThemeSerializer(serializers.ModelSerializer):
@@ -101,14 +95,10 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketListSerializer(TicketSerializer):
-    show_session = serializers.SerializerMethodField()
-    reservation = serializers.SerializerMethodField()
-
-    def get_show_session(self, obj):
-        return obj.show_session.astronomy_show.title
-
-    def get_reservation(self, obj):
-        return obj.reservation.user.username
+    show_session = serializers.CharField(
+        source="show_session.astronomy_show.title"
+    )
+    reservation = serializers.CharField(source="reservation.user.username")
 
 
 class ReservationSerializer(serializers.ModelSerializer):
