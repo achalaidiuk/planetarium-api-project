@@ -1,25 +1,22 @@
-import socket
 import time
 import os
 
 from django.core.management import BaseCommand
+from django.db import connections
 
 
 class Command(BaseCommand):
     help = "Waits for database to be ready for connection"
 
     def handle(self, *args, **options):
-        port = int(os.environ["POSTGRES_PORT"])
-
-        db_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        db_name = os.environ["POSTGRES_DB"]
 
         print("Waiting for DB connection...")
 
         while True:
             try:
-                db_socket.connect(("db", port))
+                connections[db_name].ensure_connection()
                 print("DB connection established.")
-                db_socket.close()
                 break
-            except socket.error:
+            except Exception:
                 time.sleep(0.1)
