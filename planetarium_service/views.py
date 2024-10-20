@@ -23,10 +23,6 @@ from planetarium_service.serializers import (
     ReservationSerializer,
     TicketSerializer,
     PlanetariumDomeDetailSerializer,
-    AstronomyShowListSerializer,
-    ShowSessionListSerializer,
-    TicketListSerializer,
-    ReservationListSerializer
 )
 
 
