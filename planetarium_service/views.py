@@ -80,11 +80,6 @@ class ShowSessionViewSet(
     serializer_class = ShowSessionSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return self.serializer_class
-        return self.serializer_class
-
 
 class ShowThemeViewSet(viewsets.ModelViewSet):
     queryset = ShowTheme.objects.all()
@@ -102,11 +97,6 @@ class AstronomyShowViewSet(
     serializer_class = AstronomyShowSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return self.serializer_class
-        return self.serializer_class
-
 
 class ReservationViewSet(
     mixins.ListModelMixin,
@@ -118,11 +108,6 @@ class ReservationViewSet(
     pagination_class = ReservationPagination
     permission_classes = [IsAuthenticated]
 
-    def get_serializer_class(self):
-        if self.action == "list":
-            return self.serializer_class
-        return self.serializer_class
-
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
@@ -131,11 +116,6 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Ticket.objects.filter(reservation__user=self.request.user)
-
-    def get_serializer_class(self):
-        if self.action == "list":
-            return self.serializer_class
-        return self.serializer_class
 
     def perform_create(self, serializer):
         reservation_id = self.request.data.get("reservation")
